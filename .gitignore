@@ -1,0 +1,5 @@
+jobs_new.json
+jobs_enriched.json
+__pycache__/
+*.pyc
+.pytest_cache/

@@ -1,0 +1,69 @@
+name: AyaLocums Daily Job Scraper
+
+on:
+  schedule:
+    - cron: '0 12 * * 1-5'   # 8 AM ET weekdays (UTC 12 = 8 AM EDT / 7 AM EST)
+  workflow_dispatch:           # allow manual runs from GitHub UI
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: ayalocums-daily-scrape
+      cancel-in-progress: false   # never cancel a mid-run scrape
+
+    permissions:
+      contents: write   # required to commit state.json
+
+    defaults:
+      run:
+        working-directory: ayalocums-scraper
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Scrape new jobs
+        run: python scraper.py
+
+      - name: Identify facilities
+        run: python identifier.py
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Send email report
+        run: python emailer.py
+        env:
+          EMAIL_TRANSPORT: ${{ secrets.EMAIL_TRANSPORT }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+
+      - name: Commit updated state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          git diff --cached --quiet || git commit -m "chore: update seen job IDs [skip ci]"
+          git push
+
+      - name: Send failure notification
+        if: failure()
+        run: python emailer.py --failure
+        env:
+          EMAIL_TRANSPORT: ${{ secrets.EMAIL_TRANSPORT }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          FAILURE_REASON: "A step failed — check the GitHub Actions run log for details."
