@@ -16,10 +16,6 @@ jobs:
     permissions:
       contents: write   # required to commit state.json
 
-    defaults:
-      run:
-        working-directory: ayalocums-scraper
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
