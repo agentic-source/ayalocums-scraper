@@ -90,7 +90,7 @@ def build_success_email(jobs: list) -> tuple:
         subject = f"AyaLocums New Jobs \u2014 {date} ({count} new {noun})"
         body = (
             '<div style="font-family:Arial,sans-serif;">'
-            f"<h2>AyaLocums New Physician Jobs \u2014 {date}</h2>"
+            f"<h2>AyaLocums New Physician &amp; CRNA Jobs \u2014 {date}</h2>"
             f"<p>{count} new {noun} since last run</p>"
             f"{build_table(jobs)}"
             "</div>"

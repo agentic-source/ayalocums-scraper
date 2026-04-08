@@ -24,7 +24,7 @@ FALLBACK = {
     "alternative_facility": None,
 }
 
-USER_PROMPT_TEMPLATE = """Identify the most likely US healthcare facility for this locum tenens physician job posting.
+USER_PROMPT_TEMPLATE = """Identify the most likely US healthcare facility for this locum tenens healthcare job posting.
 The staffing agency sometimes hides the facility name, but you can infer it from the address, location, and specialty.
 
 Job details:
